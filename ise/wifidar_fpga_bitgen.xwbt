@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=C:\Users\Tom\projs\wifidar_fpga\ise\wifidar_fpga.ncd
+OUTFILE=C:\Users\Tom\projs\wifidar_fpga\ise\wifidar_fpga.bit
+FAMILY=Spartan3E
+PART=xc3s500e-4fg320
+WORKINGDIR=C:\Users\Tom\projs\wifidar_fpga\ise
+LICENSE=WebPack
+USER_INFO=210823444_0_0_054
