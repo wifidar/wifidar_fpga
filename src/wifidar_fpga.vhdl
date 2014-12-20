@@ -97,7 +97,7 @@ architecture structural of wifidar_fpga is
 
 			-- sine wave control related
 			freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
-			offset_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
+			offset_adjust: out std_logic_vector((num_channels * 12) - 1 downto 0);
 			amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 			pwm_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 
@@ -122,7 +122,7 @@ architecture structural of wifidar_fpga is
 		port(
 			ramp_in: in std_logic_vector(11 downto 0);
 			ramp_out: out std_logic_vector(11 downto 0);
-			adjust: in std_logic_vector(5 downto 0)
+			adjust: in std_logic_vector(11 downto 0)
 		);
 	end component;
 
@@ -140,7 +140,7 @@ architecture structural of wifidar_fpga is
 
 	signal freq_mult_sig: std_logic_vector(9 downto 0);
 
-	signal offset_adjust_sig: std_logic_vector(5 downto 0);
+	signal offset_adjust_sig: std_logic_vector(11 downto 0);
 	signal amplitude_adjust_sig: std_logic_vector(5 downto 0);
 
 	signal amplitude_adjusted_ramp: std_logic_vector(11 downto 0);

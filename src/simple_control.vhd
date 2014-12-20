@@ -13,7 +13,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity simple_control is
 	generic(
 					 sine_length_bits: integer := 10;
-					 num_channels: integer := 4
+					 num_channels: integer := 1
 				 );
 	port(
 				-- spi control related
@@ -23,7 +23,7 @@ entity simple_control is
 
 				-- sine wave control related
 				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
-				offset_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
+				offset_adjust: out std_logic_vector((num_channels * 12) - 1 downto 0);
 				amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 				pwm_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 
@@ -42,7 +42,7 @@ architecture Behavioral of simple_control is
 	signal spi_channel_incremented: std_logic;
 
 	type freq_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
-	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
+	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(11 downto 0);
 	type amplitude_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
 	type pwm_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
 
@@ -118,7 +118,7 @@ begin
 		if(rising_edge(clk)) then
 			for I in 0 to num_channels - 1 loop
 				freq_mult((10 + (I * 10)) - 1 downto (I * 10)) <= freq_array(I);
-				offset_adjust((6 + (I * 8)) - 1 downto (I * 8)) <= offset_array(I);
+				offset_adjust((12 + (I * 8)) - 1 downto (I * 8)) <= offset_array(I);
 				amplitude_adjust((6 + (I * 6)) - 1 downto (I * 6)) <= amplitude_array(I);
 				pwm_adjust((10 + (I * 10)) - 1 downto (I * 10)) <= pwm_array(I);
 			end loop;
