@@ -23,7 +23,7 @@ entity simple_control is
 
 				-- sine wave control related
 				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
-				offset_adjust: out std_logic_vector((num_channels * 12) - 1 downto 0);
+				offset_adjust: out std_logic_vector((num_channels * 11) - 1 downto 0);
 				amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 				pwm_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 
@@ -42,7 +42,7 @@ architecture Behavioral of simple_control is
 	signal spi_channel_incremented: std_logic;
 
 	type freq_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
-	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(11 downto 0);
+	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(10 downto 0);
 	type amplitude_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
 	type pwm_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
 
@@ -91,9 +91,9 @@ begin
 						end if;
 					elsif(current_mode = "01") then -- phase adjust
 						if(adjust(0) = '1') then
-							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 1);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 3);
 						elsif(adjust(1) = '1') then
-							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) - 1);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) - 3);
 						end if;
 					elsif(current_mode= "10") then -- amplitude adjust
 						if(adjust(0) = '1') then
@@ -118,7 +118,7 @@ begin
 		if(rising_edge(clk)) then
 			for I in 0 to num_channels - 1 loop
 				freq_mult((10 + (I * 10)) - 1 downto (I * 10)) <= freq_array(I);
-				offset_adjust((12 + (I * 8)) - 1 downto (I * 8)) <= offset_array(I);
+				offset_adjust((11 + (I * 8)) - 1 downto (I * 8)) <= offset_array(I);
 				amplitude_adjust((6 + (I * 6)) - 1 downto (I * 6)) <= amplitude_array(I);
 				pwm_adjust((10 + (I * 10)) - 1 downto (I * 10)) <= pwm_array(I);
 			end loop;
