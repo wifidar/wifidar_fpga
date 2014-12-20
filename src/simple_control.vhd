@@ -1,14 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity simple_control is
 	generic(
@@ -91,9 +83,9 @@ begin
 						end if;
 					elsif(current_mode = "01") then -- phase adjust
 						if(adjust(0) = '1') then
-							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 3);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 10);
 						elsif(adjust(1) = '1') then
-							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) - 3);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) - 10);
 						end if;
 					elsif(current_mode= "10") then -- amplitude adjust
 						if(adjust(0) = '1') then
