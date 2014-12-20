@@ -18,6 +18,8 @@ entity wifidar_fpga is
 		SPI_SCK: out std_logic;
 		DAC_CLR: out std_logic;
 
+		current_mode_out: out std_logic_vector(1 downto 0);
+
 		clk: in std_logic;
 	);
 
@@ -155,5 +157,7 @@ begin
 	amp_adj: amplitude_adjust port map (ramp_out_sig,amplitude_adjusted_ramp,amplitude_adjust_sig,clk);
 
 	off_adj: offset_adjust port map (amplitude_adjusted_ramp,offset_ramp,offset_adjust_sig);
+
+	current_mode_out <= current_mode_sig;
 
 end structural;
