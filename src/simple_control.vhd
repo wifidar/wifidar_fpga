@@ -23,7 +23,7 @@ entity simple_control is
 
 				-- sine wave control related
 				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
-				offset_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
+				offset_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 				amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 				pwm_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 
@@ -42,12 +42,12 @@ architecture Behavioral of simple_control is
 	signal spi_channel_incremented: std_logic;
 
 	type freq_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
-	type phase_array_t is array (0 to num_channels - 1) of std_logic_vector(7 downto 0);
+	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
 	type amplitude_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
 	type pwm_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
 
 	signal freq_array: freq_array_t;
-	signal phase_array: phase_array_t;
+	signal offset_array: offset_array_t;
 	signal amplitude_array: amplitude_array_t;
 	signal pwm_array: pwm_array_t;
 
@@ -91,9 +91,9 @@ begin
 						end if;
 					elsif(current_mode = "01") then -- phase adjust
 						if(adjust(0) = '1') then
-							phase_array(I) <= std_logic_vector(unsigned(phase_array(I)) + 1);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 1);
 						elsif(adjust(1) = '1') then
-							phase_array(I) <= std_logic_vector(unsigned(phase_array(I)) - 1);
+							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) - 1);
 						end if;
 					elsif(current_mode= "10") then -- amplitude adjust
 						if(adjust(0) = '1') then
@@ -118,7 +118,7 @@ begin
 		if(rising_edge(clk)) then
 			for I in 0 to num_channels - 1 loop
 				freq_mult((10 + (I * 10)) - 1 downto (I * 10)) <= freq_array(I);
-				phase_adjust((8 + (I * 8)) - 1 downto (I * 8)) <= phase_array(I);
+				offset_adjust((6 + (I * 8)) - 1 downto (I * 8)) <= offset_array(I);
 				amplitude_adjust((6 + (I * 6)) - 1 downto (I * 6)) <= amplitude_array(I);
 				pwm_adjust((10 + (I * 10)) - 1 downto (I * 10)) <= pwm_array(I);
 			end loop;
