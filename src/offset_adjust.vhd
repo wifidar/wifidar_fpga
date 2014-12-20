@@ -13,7 +13,7 @@ end offset_adjust;
 architecture Behavioral of offset_adjust is
 
 begin
-	ramp_out <= std_logic_vector(unsigned(ramp_out) + unsigned(adjust))
+	ramp_out <= std_logic_vector(unsigned(ramp_out) + unsigned(adjust));
 
 end Behavioral;
 
