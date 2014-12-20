@@ -20,7 +20,7 @@ entity wifidar_fpga is
 
 		current_mode_out: out std_logic_vector(1 downto 0);
 
-		clk: in std_logic;
+		clk: in std_logic
 	);
 
 end wifidar_fpga;
@@ -122,7 +122,7 @@ architecture structural of wifidar_fpga is
 		port(
 			ramp_in: in std_logic_vector(11 downto 0);
 			ramp_out: out std_logic_vector(11 downto 0);
-			adjust: in std_logic_vector(5 downto 0);
+			adjust: in std_logic_vector(5 downto 0)
 		);
 	end component;
 
