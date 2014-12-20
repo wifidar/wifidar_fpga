@@ -144,7 +144,7 @@ architecture structural of wifidar_fpga is
 	signal amplitude_adjust_sig: std_logic_vector(5 downto 0);
 
 	signal amplitude_adjusted_ramp: std_logic_vector(11 downto 0);
-	signal offset_ramp(11 downto 0);
+	signal offset_ramp: std_logic_vector(11 downto 0);
 
 begin
 	ramp: ramp_gen port map (x_out_sig,ramp_out_sig);
@@ -152,7 +152,7 @@ begin
 	spi: dac_spi port map(SPI_SS_B,AMP_CS,AD_CONV,SF_CE0,FPGA_INIT_B,SPI_MOSI,DAC_CS,SPI_SCK,DAC_CLR,ready_flag_sig,spi_channel,send_data_sig,offset_ramp,reset_dac_sig,clk);
 	phase_accumulator: phase_acc port map (x_out_sig,freq_mult_sig,"00000000",clk);
 
-	controller: simple_control generic map (10,1) port map (ready_flag_sig,send_data_sig,spi_channel_sig,freq_mult_sig,offset_adjust_sig,amplitude_adjust_sig,open,current_mode_sig,current_channel_sig,adjust_sig,clk);
+	controller: simple_control generic map (10,1) port map (ready_flag_sig,send_data_sig,spi_channel,freq_mult_sig,offset_adjust_sig,amplitude_adjust_sig,open,current_mode_sig,current_channel_sig,adjust_sig,clk);
 
 	amp_adj: amplitude_adjust port map (ramp_out_sig,amplitude_adjusted_ramp,amplitude_adjust_sig,clk);
 

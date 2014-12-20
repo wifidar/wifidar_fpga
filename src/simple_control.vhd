@@ -23,7 +23,7 @@ entity simple_control is
 
 				-- sine wave control related
 				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
-				phase_adjust: out std_logic_vector((num_channels * 8) - 1 downto 0);
+				offset_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 				amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 				pwm_adjust: out std_logic_vector((num_channels * 10) - 1 downto 0);
 
