@@ -39,7 +39,7 @@ architecture Behavioral of simple_control is
 	type pwm_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
 
 	signal freq_array: freq_array_t := (others => ("0000000100")); -- :- 4
-	signal offset_array: offset_array_t := (others => ("100000001000"));
+	signal offset_array: offset_array_t := (others => ("101001111000"));
 	signal amplitude_array: amplitude_array_t := (others => ("010000")); -- := 16
 	signal pwm_array: pwm_array_t;
 
