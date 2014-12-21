@@ -6,7 +6,7 @@ entity offset_adjust is
 	port(
 		ramp_in: in std_logic_vector(11 downto 0);
 		ramp_out: out std_logic_vector(11 downto 0);
-		adjust: in std_logic_vector(10 downto 0)
+		adjust: in std_logic_vector(11 downto 0)
 	);
 end offset_adjust;
 
