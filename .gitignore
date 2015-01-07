@@ -4,3 +4,4 @@ build/
 temp/
 *.lnk
 *.bit
+*.bak
