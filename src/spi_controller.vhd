@@ -43,8 +43,8 @@ architecture Behavioral of spi_controller is
 	signal curr_bit: integer range 0 to 33;
 	signal curr_clk_cnt: integer range 0 to 3;
 	signal spi_clk: std_logic := '0';
-	signal temp_data: std_logic_vector(33 downto 0) := (others => '0');
-	signal temp: std_logic;
+	signal temp_out_data: std_logic_vector(33 downto 0) := (others => '0');
+	signal hold_clk: std_logic;
 	
 begin
 
@@ -69,19 +69,19 @@ begin
 						spi_clk <= not spi_clk;
 					end if;
 					if(spi_clk = '1') then
-						if(temp = '1') then
-							temp <= '0';
+						if(hold_clk = '1') then
+							hold_clk <= '0';
 							curr_bit <= curr_bit + 1;
 						end if;
 						SPI_MOSI <= spi_data_in(curr_bit);
-						if(curr_bit = to_integer(unsigned(spi_data_width)) and temp = '1') then
+						if(curr_bit = to_integer(unsigned(spi_data_width)) and hold_clk = '1') then
 							busy <= '0';
 							curr_state <= waiting;
 						end if;
 					end if;
 					if(spi_clk = '0') then
-						temp <= '1';
-						temp_data(curr_bit) <= SPI_MISO;
+						hold_clk <= '1';
+						temp_out_data(curr_bit) <= SPI_MISO;
 					end if;
 				when waiting =>
 					curr_bit <= 0;
@@ -89,7 +89,7 @@ begin
 					spi_clk <= '0';
 					SPI_MOSI <= '0';
 					busy <= '0';
-					spi_data_out <= temp_data;
+					spi_data_out <= temp_out_data;
 					if(send_data = '1') then
 						curr_state <= sending;
 					end if;
