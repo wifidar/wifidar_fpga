@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity simple_control is
+entity dac_controller is
 	generic(
 					 sine_length_bits: integer := 10;
 					 num_channels: integer := 1
@@ -24,9 +24,9 @@ entity simple_control is
 				adjust: in std_logic_vector(1 downto 0); -- pulses for adjustment of values, 0 up, 1 down
 				clk: in std_logic
 			);
-end simple_control;
+end dac_controller;
 
-architecture Behavioral of simple_control is
+architecture Behavioral of dac_controller is
 	signal ready: std_logic;
 	signal spi_send_sig: std_logic;
 	signal spi_channel_sig: std_logic_vector(1 downto 0) := "00";
