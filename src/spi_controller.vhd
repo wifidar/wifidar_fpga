@@ -26,7 +26,7 @@ entity spi_controller is
 		--- control ---
 		busy: out std_logic;
 		send_data: in std_logic;  -- send data over SPI
-		spi_data_width: in std_logic_vector(4 downto 0);
+		spi_data_width: in std_logic_vector(5 downto 0);
 		spi_clk_div: in std_logic_vector(1 downto 0); -- divider required for spi clock
 		spi_data_in: in std_logic_vector(33 downto 0);
 		spi_data_out: out std_logic_vector(33 downto 0);
