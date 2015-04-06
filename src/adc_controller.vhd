@@ -46,7 +46,7 @@ begin
 			case adc_state is
 				when reset_amp =>
 					req_amp <= '1';
-					spi_to_amp <= (others => '0');
+					spi_to_amp <= "0001";
 					curr_state <= normal_op;
 				when normal_op =>
 					count_before_adc_req <= count_before_adc_req + 1;
