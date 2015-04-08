@@ -6,13 +6,8 @@ entity dac_controller is
 	generic(
 					 sine_length_bits: integer := 10;
 					 num_channels: integer := 1
-				 );
+		);
 	port(
-				-- spi control related
-				spi_ready: in std_logic;
-				spi_send_data: out std_logic;
-				spi_channel: out std_logic_vector(1 downto 0);
-
 				-- sine wave control related
 				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
 				offset_adjust: out std_logic_vector((num_channels * 12) - 1 downto 0);
@@ -23,15 +18,10 @@ entity dac_controller is
 				current_channel: in std_logic_vector(1 downto 0);
 				adjust: in std_logic_vector(1 downto 0); -- pulses for adjustment of values, 0 up, 1 down
 				clk: in std_logic
-			);
+		);
 end dac_controller;
 
 architecture Behavioral of dac_controller is
-	signal ready: std_logic;
-	signal spi_send_sig: std_logic;
-	signal spi_channel_sig: std_logic_vector(1 downto 0) := "00";
-	signal spi_channel_incremented: std_logic;
-
 	type freq_array_t is array (0 to num_channels - 1) of std_logic_vector(9 downto 0);
 	type offset_array_t is array (0 to num_channels - 1) of std_logic_vector(11 downto 0);
 	type amplitude_array_t is array (0 to num_channels - 1) of std_logic_vector(5 downto 0);
@@ -41,32 +31,6 @@ architecture Behavioral of dac_controller is
 	signal amplitude_array: amplitude_array_t := (others => ("010000")); -- := 16
 
 begin
-	spi: process(clk)
-	begin
-		if(rising_edge(clk)) then
-			if(spi_send_sig = '1') then
-				spi_send_sig <= '0';
-			end if;
-			if(spi_ready = '1') then
-				if(ready = '1') then
-					if(spi_channel_incremented = '0') then
-						spi_channel_incremented <= '1';
-						spi_channel_sig <= std_logic_vector(unsigned(spi_channel_sig) + 1);
-					end if;
-					spi_send_sig <= '1';
-					ready <= '0';
-				else
-					ready <= '1';
-				end if;
-			else
-				spi_channel_incremented <= '0';
-			end if;
-		end if;
-	end process;
-
-	spi_channel <= spi_channel_sig;
-	spi_send_data <= spi_send_sig;
-
 	mode_handle: process(clk)
 	begin
 		if(rising_edge(clk)) then
@@ -106,7 +70,5 @@ begin
 			end loop;
 		end if;
 	end process;
-
-
 end Behavioral;
 

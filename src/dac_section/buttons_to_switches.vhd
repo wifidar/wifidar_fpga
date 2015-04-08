@@ -4,13 +4,13 @@ use IEEE.numeric_std.all;
 
 entity buttons_to_switches is
 		port(
-					adjust: out std_logic_vector(1 downto 0);
-				  rotary_pulse: in std_logic;
-				  rotary_direction: in std_logic;
-					buttons_in: in std_logic_vector(3 downto 0);
-					current_mode: out std_logic_vector(1 downto 0);
-					current_channel: out std_logic_vector(1 downto 0);
-					clk: in std_logic
+				adjust: out std_logic_vector(1 downto 0);
+				rotary_pulse: in std_logic;
+				rotary_direction: in std_logic;
+				buttons_in: in std_logic_vector(3 downto 0);
+				current_mode: out std_logic_vector(1 downto 0);
+				current_channel: out std_logic_vector(1 downto 0);
+				clk: in std_logic
 				);
 end buttons_to_switches;
 
