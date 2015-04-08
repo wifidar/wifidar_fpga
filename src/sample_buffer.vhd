@@ -10,7 +10,9 @@ entity sample_buffer is
 	port(
 		sample_in: in std_logic_vector(sample_length_bits - 1 downto 0);
 		sample_out: out std_logic_vector(sample_length_bits - 1 downto 0);
+
 		sample_in_ready: in std_logic;
+		sample_out_ready: out std_logic;
 
 		sample_out_index: in std_logic_vector(ceil(log(num_samples)/log(2)) downto 0);
 		buffer_full: out std_logic;
@@ -29,7 +31,7 @@ architecture structural of sample_buffer is
 	type sample_buffer_state is (reset,filling,emptying);
 	signal curr_state: sample_buffer_state;
 
-	signal curr_input_address: unsigned(ceil(log(num_samples)/log(2)) downto 0) := (others => '0');
+	signal curr_input_address: integer range 0 to num_samples := 0;
 	signal buffer_full_sig: std_logic := '0';
 
 begin
@@ -56,12 +58,14 @@ begin
 						sample_buffer_mem(curr_input_address) <= sample_in;
 					end if;
 				when emptying =>
-					buffer_full_sig <= '1';
-					if(sample_out_index = std_logic_vector(to_unsigned(num_samples,ceil(log(num_samples)/log(2))))) then
-						curr_state <= filling;
-						buffer_full_sig <= '0';
+					if(sample_out_ready = '1') then
+						buffer_full_sig <= '1';
+						if(sample_out_index = std_logic_vector(to_unsigned(num_samples,ceil(log(num_samples)/log(2))))) then
+							curr_state <= filling;
+							buffer_full_sig <= '0';
+						end if;
+						sample_out <= sample_buffer_mem(sample_out_index);
 					end if;
-					sample_out <= sample_buffer_mem(sample_out_index);
 			end case;
 		end if;
 	end;
