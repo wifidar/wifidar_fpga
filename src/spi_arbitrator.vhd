@@ -4,6 +4,21 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity spi_arbitrator is
 	port(
+		----- other devices on SPI BUS ---
+		SPI_SS_B: out std_logic;  -- set to 1
+		SF_CE0: out std_logic;  -- set to 1
+		FPGA_INIT_B: out std_logic;  -- set to 1
+
+		----- chip selects ---
+		AMP_CS: out std_logic;  -- active low pre-amp chip select
+		AD_CONV: out std_logic;  -- active high ADC chip select
+		DAC_CS: out std_logic;  -- active low DAC chip select
+
+		----- resets ---
+		DAC_CLR: out std_logic;  -- DAC clear signal (active low)
+		AMP_SHDN: out std_logic; -- ADC pre-amp shutdown signal (active high)
+
+		-- control signals
 		spi_controller_busy: in std_logic;
 		spi_controller_send_data: out std_logic;
 		spi_data_width: out std_logic_vector(5 downto 0);
@@ -62,6 +77,10 @@ begin
 				end if;
 				case curr_state is
 					when dac =>
+						DAC_CS <= '0';
+						AMP_CS <= '1';
+						AD_CONV <= '0';
+
 						if(amp_requested = '1') then
 							curr_state <= amp;
 							amp_requested <= '0';
@@ -74,10 +93,18 @@ begin
 							spi_controller_send_data <= '1';
 						end if;
 					when adc =>
+						DAC_CS <= '1';
+						AMP_CS <= '1';
+						AD_CONV <= '1';
+
 						spi_data_in <= (others => '0');
 						spi_data_width <= "100010";
 						spi_controller_send_data <= '1';
 					when amp =>
+						DAC_CS <= '1';
+						AMP_CS <= '0';
+						AD_CONV <= '0';
+
 						spi_data_in <= (3 downto 0 => to_amp,others => '0');
 						spi_data_width <= "001000";
 						spi_controller_send_data <= '1';
@@ -86,5 +113,12 @@ begin
 			end if;
 		end if;
 	end process;
+
+	SPI_SS_B <= '1';
+	SF_CE0 <= '1';
+	FPGA_INIT_B <= '1';
+
+	DAC_CLR <= '1';
+	AMP_SHDN <= '0';
 end Behavioral;
 

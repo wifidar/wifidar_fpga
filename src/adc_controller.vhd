@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity adc_controller is
 	generic(
-		sample_div: integer := 2500;
+		sample_div: integer := 2500
 	);
 	port(
 		spi_from_adc: in std_logic_vector(13 downto 0);

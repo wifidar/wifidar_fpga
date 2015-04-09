@@ -14,6 +14,7 @@ entity uart_minibuf is
 
 		sample_buffer_full: in std_logic;
 		uart_send_data: out std_logic;
+		uart_ready: in std_logic;
 
 		rst: in std_logic;
 		clk: in std_logic
