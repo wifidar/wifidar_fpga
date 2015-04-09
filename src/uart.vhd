@@ -15,8 +15,6 @@ entity uart is
 		ready: out std_logic;
 		send_data: in std_logic;
 
-		run: in std_logic;
-
 		rst: in std_logic;
 		clk: in std_logic
 	);
