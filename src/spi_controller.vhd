@@ -74,7 +74,7 @@ begin
 							curr_bit <= curr_bit + 1;
 						end if;
 						SPI_MOSI <= spi_data_in(curr_bit);
-						if(curr_bit = to_integer(unsigned(spi_data_width)) and hold_clk = '1') then
+						if(curr_bit = to_integer(unsigned(spi_data_width)) - 1 and hold_clk = '1') then
 							busy <= '0';
 							curr_state <= waiting;
 						end if;

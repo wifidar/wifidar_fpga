@@ -34,34 +34,34 @@ begin
 	begin
 		if(rising_edge(clk)) then
 			if adjust(5) = '1' then
-				one_shift <= (unsigned(sine_in) srl 1);
+				one_shift_temp <= (unsigned(sine_in) srl 1);
 			else 
-				one_shift <= (others => '0');
+				one_shift_temp <= (others => '0');
 			end if;
 			if adjust(4) = '1' then
-				two_shift <= unsigned(sine_in) srl 2;
+				two_shift_temp <= unsigned(sine_in) srl 2;
 			else 
-				two_shift <= (others => '0');
+				two_shift_temp <= (others => '0');
 			end if;
 			if adjust(3) = '1' then
-				three_shift <= unsigned(sine_in) srl 3;
+				three_shift_temp <= unsigned(sine_in) srl 3;
 			else 
-				three_shift <= (others => '0');
+				three_shift_temp <= (others => '0');
 			end if;
 			if adjust(2) = '1' then
-				four_shift <= unsigned(sine_in) srl 4;
+				four_shift_temp <= unsigned(sine_in) srl 4;
 			else 
-				four_shift <= (others => '0');
+				four_shift_temp <= (others => '0');
 			end if;
 			if adjust(1) = '1' then
-				five_shift <= unsigned(sine_in) srl 5;
+				five_shift_temp <= unsigned(sine_in) srl 5;
 			else 
-				five_shift <= (others => '0');
+				five_shift_temp <= (others => '0');
 			end if;
 			if adjust(0) = '1' then
-				six_shift <= unsigned(sine_in) srl 5;
+				six_shift_temp <= unsigned(sine_in) srl 5;
 			else 
-				six_shift <= (others => '0');
+				six_shift_temp <= (others => '0');
 			end if;
 --			
 --				four_shift <= unsigned(sine_in) srl 4 if adjust(2) = '1' else (others => '0');
@@ -77,12 +77,12 @@ begin
 		end if;
 	end process;
 	
-	one_shift_temp <= '0' & one_shift;
-	two_shift_temp <= "00" & two_shift;
-	three_shift_temp <= "000" & three_shift;
-	four_shift_temp <= "0000" & four_shift;
-	five_shift_temp <= "00000" & five_shift;
-	six_shift_temp <= "00000" & six_shift;
+--	one_shift_temp <= '0' & one_shift;
+--	two_shift_temp <= "00" & two_shift;
+--	three_shift_temp <= "000" & three_shift;
+--	four_shift_temp <= "0000" & four_shift;
+--	five_shift_temp <= "00000" & five_shift;
+--	six_shift_temp <= "00000" & six_shift;
 	
 end Behavioral;
 
