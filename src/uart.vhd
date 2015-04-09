@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
+use IEEE.math_real.all;
 
 entity uart is
 	generic(
@@ -35,21 +36,21 @@ architecture behavioral of uart is
 	signal current_bit: integer range 0 to 8;
 
 begin
-	slower_clock: process(clk)
+	slower_clock: process(clk,rst)
 	begin
 		if(rst = '1') then
-			clock_divide <= '0';
+			clock_divide <= 0;
 			slow_clock <= '0';
 		elsif(rising_edge(clk)) then
 			clock_divide <= clock_divide + 1;
-			if(clock_divide = ceil(clk_freq/(2*baud_rate))) then  -- 651->38400 baud
+			if(clock_divide = integer(ceil(real(clk_freq/(2*baud_rate))))) then  -- 651->38400 baud
 				clock_divide <= 0;
 				slow_clock <= not slow_clock;
 			end if;
 		end if;
 	end process;
 
-	main_uart: process(slow_clock)
+	main_uart: process(slow_clock,rst)
 	begin
 		if(rst = '1') then
 			curr_state <= reset;

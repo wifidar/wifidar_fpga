@@ -27,7 +27,7 @@ entity spi_arbitrator is
 		
 		to_adc_controller: out std_logic_vector(13 downto 0);
 		to_amp: in std_logic_vector(3 downto 0);
-		ramp_in: in std_logic_vector(9 downto 0);
+		ramp_in: in std_logic_vector(11 downto 0);
 		
 		req_adc: in std_logic;
 		req_amp: in std_logic;
@@ -45,6 +45,8 @@ architecture Behavioral of spi_arbitrator is
 
 	signal amp_requested: std_logic;
 	signal adc_requested: std_logic;
+	
+	signal adc_last: std_logic;
 	
 begin
 
@@ -88,7 +90,8 @@ begin
 							curr_state <= adc;
 							adc_requested <= '0';
 						else
-							spi_data_in <= (9 downto 0 => ramp_in,others => '0');
+							spi_data_in(11 downto 0) <= ramp_in;
+							spi_data_in(33 downto 10) <= (others => '0');
 							spi_data_width <= "011000";
 							spi_controller_send_data <= '1';
 						end if;
@@ -105,7 +108,8 @@ begin
 						AMP_CS <= '0';
 						AD_CONV <= '0';
 
-						spi_data_in <= (3 downto 0 => to_amp,others => '0');
+						spi_data_in(3 downto 0) <= to_amp;
+						spi_data_in(33 downto 4) <= (others => '0');
 						spi_data_width <= "001000";
 						spi_controller_send_data <= '1';
 					when others =>

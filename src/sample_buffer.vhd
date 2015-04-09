@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
+use IEEE.math_real.all;
 
 entity sample_buffer is
 	generic(
@@ -13,7 +14,7 @@ entity sample_buffer is
 
 		sample_in_ready: in std_logic;
 
-		sample_out_index: in std_logic_vector(ceil(log(num_samples)/log(2)) downto 0);
+		sample_out_index: in std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 		buffer_full: out std_logic;
 		
 		rst: in std_logic;
@@ -35,7 +36,7 @@ architecture behavioral of sample_buffer is
 
 begin
 
-	process(clk)
+	process(clk,rst)
 	begin
 		if(rst = '1') then
 			curr_state <= reset;
@@ -45,11 +46,11 @@ begin
 				when reset =>
 					curr_state <= filling;
 					buffer_full_sig <= '0';
-					curr_input_address <= (others => '0');
+					curr_input_address <= 0;
 				when filling =>
-					if(sample_in_ready) then
-						curr_input_address <= curr_input_addres + 1;
-						if(curr_input_address = std_logic_vector(unsigned(num_samples))) then
+					if(sample_in_ready = '1') then
+						curr_input_address <= curr_input_address + 1;
+						if(curr_input_address = num_samples) then
 							curr_input_address <= 0;
 							curr_state <= emptying;
 							buffer_full_sig <= '1';
@@ -58,11 +59,11 @@ begin
 					end if;
 				when emptying =>
 					buffer_full_sig <= '1';
-					if(sample_out_index = std_logic_vector(to_unsigned(num_samples,ceil(log(num_samples)/log(2))))) then
+					if(sample_out_index = std_logic_vector(to_unsigned(num_samples,sample_out_index'length))) then
 						curr_state <= filling;
 						buffer_full_sig <= '0';
 					end if;
-					sample_out <= sample_buffer_mem(sample_out_index);
+					sample_out <= sample_buffer_mem(to_integer(unsigned(sample_out_index)));
 			end case;
 		end if;
 	end process;

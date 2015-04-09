@@ -1,7 +1,12 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+use IEEE.math_real.all;
 
 entity wifidar_fpga is
+	generic(
+		num_samples: integer range 0 to 20000 := 500
+	);
 	port(
 		rot_a: in std_logic;
 		rot_b: in std_logic;
@@ -12,8 +17,10 @@ entity wifidar_fpga is
 		AD_CONV: out std_logic;
 		SF_CE0: out std_logic;
 		FPGA_INIT_B: out std_logic;
+		AMP_SHDN: out std_logic;
 		
 		SPI_MOSI: out std_logic;
+		SPI_MISO: in std_logic;
 		DAC_CS: out std_logic;
 		SPI_SCK: out std_logic;
 		DAC_CLR: out std_logic;
@@ -73,7 +80,7 @@ architecture structural of wifidar_fpga is
 
 			sample_in_ready: in std_logic;
 
-			sample_out_index: in std_logic_vector(ceil(log(num_samples)/log(2)) downto 0);
+			sample_out_index: in std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 			buffer_full: out std_logic;
 			
 			rst: in std_logic;
@@ -96,7 +103,7 @@ architecture structural of wifidar_fpga is
 
 	component uart_minibuf
 		generic(
-			sample_length_bits: integer range 0 to 32 := 14;
+			sample_length_bits: integer range 0 to 32 := 14
 		);
 		port(
 			data_in: in std_logic_vector (sample_length_bits -1 downto 0);
@@ -139,7 +146,7 @@ architecture structural of wifidar_fpga is
 			
 			to_adc_controller: out std_logic_vector(13 downto 0);
 			to_amp: in std_logic_vector(3 downto 0);
-			ramp_in: in std_logic_vector(9 downto 0);
+			ramp_in: in std_logic_vector(11 downto 0);
 			
 			req_adc: in std_logic;
 			req_amp: in std_logic;
@@ -169,11 +176,9 @@ architecture structural of wifidar_fpga is
 			clk: in std_logic
 		);
 	end component;
-
+	
 	signal new_waveform_sig: std_logic;
 	signal ramp_data_sig: std_logic_vector(11 downto 0);
-
-	signal num_samples: integer := 500;
 
 	signal uart_data: std_logic_vector(7 downto 0);
 	signal uart_send_data: std_logic;
@@ -182,7 +187,7 @@ architecture structural of wifidar_fpga is
 	signal adc_sample_data: std_logic_vector(13 downto 0);
 	signal sample_buffer_out: std_logic_vector(13 downto 0);
 	signal load_adc: std_logic;
-	signal sample_out_index: std_logic_vector(ceil(log(num_samples)/log(2)) downto 0);
+	signal sample_out_index: std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 	signal sample_buffer_full: std_logic;
 
 	signal spi_to_amp: std_logic_vector(3 downto 0);
@@ -210,5 +215,5 @@ begin
 								adc_sample_data,spi_to_amp,ramp_data_sig,req_adc,req_amp,load_adc,rst,clk);
 
 	spi_controllerer: spi_controller port map (SPI_SCK,SPI_MOSI,SPI_MISO,spi_controller_busy,spi_controller_send_data,
-								spi_data_width,spi_data_in,spi_data_out,rst,clk);
+								spi_data_width,"10",spi_data_in,spi_data_out,rst,clk);
 end structural;

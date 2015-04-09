@@ -35,7 +35,7 @@ begin
 		elsif(rising_edge(clk)) then
 			req_amp <= '0';
 			req_adc <= '0';
-			case adc_state is
+			case curr_state is
 				when reset_amp =>
 					req_amp <= '1';
 					spi_to_amp <= "0001";
@@ -43,7 +43,7 @@ begin
 				when normal_op =>
 					count_before_adc_req <= count_before_adc_req + 1;
 					if(count_before_adc_req = sample_div - 1) then
-						adc_state <= update_adc;
+						curr_state <= update_adc;
 					end if;
 				when update_adc =>
 					req_adc <= '1';
