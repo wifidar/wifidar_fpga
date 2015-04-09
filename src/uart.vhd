@@ -10,12 +10,10 @@ entity uart is
 	port(
 		uart_tx: out std_logic;
 		
-		--data_in: in std_logic_vector(sample_length_bits - 1 downto 0);
 		data_in: in std_logic_vector(7 downto 0);
 
-		--curr_sample_index: out std_logic_vector(9 downto 0);
-		--request_new_sample: out std_logic;
 		ready: out std_logic;
+		send_data: in std_logic;
 
 		run: in std_logic;
 
@@ -25,7 +23,7 @@ entity uart is
 
 end uart;
 
-architecture structural of uart is
+architecture behavioral of uart is
 
 	type uart_state is (reset,waiting,sending);
 	signal curr_state: uart_state;
@@ -36,7 +34,7 @@ architecture structural of uart is
 
 	signal uart_tx_sig: std_logic;
 
-	signal current_bit: integer range 0 to 7;
+	signal current_bit: integer range 0 to 8;
 
 begin
 	slower_clock: process(clk)
@@ -65,10 +63,17 @@ begin
 					ready <= '1';
 					current_bit <= 0;
 					uart_tx_sig <= '1';
+					if(send_data = '1') then
+						curr_state <= sending;
+					end if;
 				when sending =>
 					ready <= '0';
 					current_bit <= current_bit + 1;
-					uart_tx_sig <= data_in(current_bit);
+					if(current_bit = 0) then
+						uart_tx_sig <= '0';
+					else
+						uart_tx_sig <= data_in(current_bit - 1);
+					end if;
 					if(current_bit = 7) then
 						current_bit <= 0;
 						curr_state <= waiting;
@@ -78,4 +83,4 @@ begin
 	end process;
 
 
-end structural;
+end behavioral;
