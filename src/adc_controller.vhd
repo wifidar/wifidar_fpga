@@ -32,6 +32,7 @@ begin
 			req_adc <= '0';
 			req_amp <= '0';
 			spi_to_amp <= (others => '0');
+			count_before_adc_req <= 0;
 		elsif(rising_edge(clk)) then
 			req_amp <= '0';
 			req_adc <= '0';
@@ -43,6 +44,7 @@ begin
 				when normal_op =>
 					count_before_adc_req <= count_before_adc_req + 1;
 					if(count_before_adc_req = sample_div - 1) then
+						count_before_adc_req <= 0;
 						curr_state <= update_adc;
 					end if;
 				when update_adc =>

@@ -60,7 +60,11 @@ begin
 						curr_state <= upper_half;
 					end if;
 				when upper_half =>
-					data_out <= "10" & data_in(13 downto 8);
+					if(curr_index = 0) then
+						data_out <= "10" & data_in(13 downto 8);
+					else
+						data_out <= "00" & data_in(13 downto 0);
+					end if;
 					uart_send_data <= '0';
 					if(uart_ready = '1' and uart_triggered = '0') then
 						uart_send_data <= '1';
