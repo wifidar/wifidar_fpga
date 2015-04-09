@@ -5,7 +5,7 @@ use IEEE.numeric_std.all;
 entity sample_buffer is
 	generic(
 		sample_length_bits: integer range 0 to 32 := 12;
-		num_samples: integer range 0 to 20000 := 500;
+		num_samples: integer range 0 to 20000 := 500
 	);
 	port(
 		sample_in: in std_logic_vector(sample_length_bits - 1 downto 0);
@@ -23,7 +23,7 @@ entity sample_buffer is
 
 end sample_buffer;
 
-architecture structural of sample_buffer is
+architecture behavioral of sample_buffer is
 
 	type sample_buffer_mem_type is array (0 to (num_samples - 1)) of std_logic_vector(sample_length_bits - 1 downto 0);
 	signal sample_buffer_mem: sample_buffer_mem_type;
@@ -68,8 +68,8 @@ begin
 					end if;
 			end case;
 		end if;
-	end;
+	end process;
 
 	buffer_full <= buffer_full_sig;
 
-end structural;
+end behavioral;
