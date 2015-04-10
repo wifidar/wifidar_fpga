@@ -25,10 +25,13 @@ begin
 	begin
 		if(rising_edge(clk)) then
 			big_ol_counter <= big_ol_counter + unsigned(freq_mult);
+			if(big_ol_counter = to_unsigned(0,21)) then
+				new_signal <= '1';
+			else
+				new_signal <= '0';
+			end if;
 		end if;
 	end process;
-
-	new_signal <= '1' when big_ol_counter = (big_ol_counter'range => '0') else '0';
 	
 	x_out <= std_logic_vector(big_ol_counter(20 downto 11) + unsigned(phase_in & "00"));
 

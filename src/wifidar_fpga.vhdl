@@ -5,7 +5,8 @@ use IEEE.math_real.all;
 
 entity wifidar_fpga is
 	generic(
-		num_samples: integer range 0 to 20000 := 500
+		num_samples: integer range 0 to 20000 := 500;
+		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
 		rot_a: in std_logic;
@@ -71,14 +72,15 @@ architecture structural of wifidar_fpga is
 
 	component sample_buffer
 		generic(
-			sample_length_bits: integer range 0 to 32 := 14;
-			num_samples: integer range 0 to 20000 := 500
+			num_samples: integer range 0 to 20000 := 20;
+			sample_length_bits: integer range 0 to 32 := 14
 		);
 		port(
 			sample_in: in std_logic_vector(sample_length_bits - 1 downto 0);
 			sample_out: out std_logic_vector(sample_length_bits - 1 downto 0);
 
 			sample_in_ready: in std_logic;
+			initial_sample: in std_logic;
 
 			sample_out_index: in std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 			buffer_full: out std_logic;
@@ -103,6 +105,7 @@ architecture structural of wifidar_fpga is
 
 	component uart_minibuf
 		generic(
+			num_samples: integer range 0 to 20000 := 20;
 			sample_length_bits: integer range 0 to 32 := 14
 		);
 		port(
@@ -204,11 +207,11 @@ begin
 
 	uarter: uart port map (uart_tx,uart_data,uart_ready,uart_send_data,rst,clk);
 
-	sample_buefferer: sample_buffer port map (adc_sample_data,sample_buffer_out,load_adc,sample_out_index,sample_buffer_full,rst,clk);
+	sample_buefferer: sample_buffer generic map (num_samples,sample_length_bits) port map (adc_sample_data,sample_buffer_out,load_adc,new_waveform_sig,sample_out_index,sample_buffer_full,rst,clk);
 
 	adc_controllerer: adc_controller port map (spi_to_amp,req_adc,req_amp,rst,clk);
 
-	uart_minibuffer: uart_minibuf port map (sample_buffer_out,uart_data,sample_out_index,sample_buffer_full,uart_send_data,uart_ready,rst,clk);
+	uart_minibuffer: uart_minibuf generic map (num_samples,sample_length_bits) port map (sample_buffer_out,uart_data,sample_out_index,sample_buffer_full,uart_send_data,uart_ready,rst,clk);
 
 	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,AD_CONV,DAC_CS,DAC_CLR,AMP_SHDN,
 								spi_controller_busy,spi_controller_send_data,spi_data_width,spi_data_in,spi_data_out,

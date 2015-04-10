@@ -58,6 +58,7 @@ begin
 			case curr_state is
 				when reset =>
 					uart_tx_sig <= '1';
+					curr_state <= waiting;
 				when waiting =>
 					ready <= '1';
 					current_bit <= 0;
@@ -80,6 +81,6 @@ begin
 			end case;
 		end if;
 	end process;
-
+	uart_tx <= uart_tx_sig;
 
 end behavioral;

@@ -4,7 +4,8 @@ use IEEE.numeric_std.all;
 
 entity uart_minibuf is
 	generic(
-		sample_length_bits: integer range 0 to 32 := 12
+		num_samples: integer range 0 to 20000 := 20;
+		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
 		data_in: in std_logic_vector (sample_length_bits -1 downto 0);
@@ -63,7 +64,7 @@ begin
 					if(curr_index = 0) then
 						data_out <= "10" & data_in(13 downto 8);
 					else
-						data_out <= "00" & data_in(13 downto 0);
+						data_out <= "00" & data_in(13 downto 8);
 					end if;
 					uart_send_data <= '0';
 					if(uart_ready = '1' and uart_triggered = '0') then

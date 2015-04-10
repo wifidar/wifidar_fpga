@@ -41,12 +41,13 @@ end spi_arbitrator;
 
 architecture Behavioral of spi_arbitrator is
 	type arbitration_type is (dac,adc,amp);
-	signal curr_state: arbitration_type;
+	signal curr_state: arbitration_type := dac;
 
 	signal amp_requested: std_logic;
 	signal adc_requested: std_logic;
 	
 	signal adc_last: std_logic;
+	signal delay_one: std_logic;
 	
 begin
 
@@ -64,6 +65,7 @@ begin
 			if(spi_controller_busy = '1') then
 				spi_controller_send_data <= '0';
 				curr_state <= dac;
+				delay_one <= '0';
 				if(curr_state = adc) then
 					adc_last <= '1';
 				end if;
@@ -73,8 +75,11 @@ begin
 					adc_requested <= '1';
 				end if;
 			else
-				if(adc_last = '1') then
+				delay_one <= '1';
+				if(adc_last = '1' and delay_one = '1') then
+					delay_one <= '0';
 					adc_last <= '0';
+					to_adc_controller <= spi_data_out(13 downto 0);
 					load_adc <= '1';
 				end if;
 				case curr_state is

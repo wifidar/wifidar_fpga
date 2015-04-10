@@ -5,14 +5,15 @@ use IEEE.math_real.all;
 
 entity sample_buffer is
 	generic(
-		sample_length_bits: integer range 0 to 32 := 12;
-		num_samples: integer range 0 to 20000 := 500
+		num_samples: integer range 0 to 20000 := 20;
+		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
 		sample_in: in std_logic_vector(sample_length_bits - 1 downto 0);
 		sample_out: out std_logic_vector(sample_length_bits - 1 downto 0);
 
 		sample_in_ready: in std_logic;
+		initial_sample: in std_logic;
 
 		sample_out_index: in std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 		buffer_full: out std_logic;
@@ -33,6 +34,7 @@ architecture behavioral of sample_buffer is
 
 	signal curr_input_address: integer range 0 to num_samples := 0;
 	signal buffer_full_sig: std_logic := '0';
+	signal initialized: std_logic := '0';
 
 begin
 
@@ -48,7 +50,11 @@ begin
 					buffer_full_sig <= '0';
 					curr_input_address <= 0;
 				when filling =>
-					if(sample_in_ready = '1') then
+					if(initial_sample = '1') then
+						initialized <= '1';
+						curr_input_address <= 0;
+					end if;
+					if(sample_in_ready = '1' and initialized = '1') then
 						curr_input_address <= curr_input_address + 1;
 						if(curr_input_address = num_samples) then
 							curr_input_address <= 0;
@@ -58,6 +64,7 @@ begin
 						sample_buffer_mem(curr_input_address) <= sample_in;
 					end if;
 				when emptying =>
+					initialized <= '0';
 					buffer_full_sig <= '1';
 					if(sample_out_index = std_logic_vector(to_unsigned(num_samples,sample_out_index'length))) then
 						curr_state <= filling;

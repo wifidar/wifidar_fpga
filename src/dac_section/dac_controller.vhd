@@ -9,7 +9,7 @@ entity dac_controller is
 		);
 	port(
 				-- sine wave control related
-				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0);
+				freq_mult: out std_logic_vector((num_channels * 10) - 1 downto 0) := (others => '0');
 				offset_adjust: out std_logic_vector((num_channels * 12) - 1 downto 0);
 				amplitude_adjust: out std_logic_vector((num_channels * 6) - 1 downto 0);
 
