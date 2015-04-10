@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
+use IEEE.math_real.all;
 
 entity uart_minibuf is
 	generic(
@@ -12,7 +13,7 @@ entity uart_minibuf is
 		
 		data_out: out std_logic_vector(7 downto 0);
 
-		index_data_in: out std_logic_vector(9 downto 0);
+		index_data_in: out std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 
 		sample_buffer_full: in std_logic;
 		uart_send_data: out std_logic;
@@ -26,16 +27,15 @@ end uart_minibuf;
 
 architecture behavioral of uart_minibuf is
 
-	type uart_minibuf_state is (reset,waiting,upper_half,lower_half);
+	type uart_minibuf_state is (reset,waiting,upper_half,upper_half_hold,lower_half,lower_half_hold);
 	signal curr_state: uart_minibuf_state;
 
 	signal curr_index: integer range 0 to (2**10)-1 := 0;
 
-	signal uart_triggered: std_logic;
-	signal uart_ready_prev: std_logic;
+	signal uart_ready_prev: std_logic := '0';
 
-	signal buffer_full_prev: std_logic;
-	signal end_buff: std_logic;
+	signal buffer_full_prev: std_logic := '0';
+	signal end_buff: std_logic := '0';
 
 begin
 	process(clk,rst)
@@ -52,7 +52,7 @@ begin
 
 			case curr_state is
 				when reset =>
-					curr_state <= upper_half;
+					curr_state <= waiting;
 				when waiting =>
 					data_out <= (others => '0');
 					curr_index <= 0;
@@ -66,25 +66,34 @@ begin
 					else
 						data_out <= "00" & data_in(13 downto 8);
 					end if;
-					uart_send_data <= '0';
-					if(uart_ready = '1' and uart_triggered = '0') then
+					if(uart_ready = '1') then
 						uart_send_data <= '1';
-						uart_triggered <= '1';
-					elsif(uart_ready = '1' and uart_ready_prev = '0' and uart_triggered = '1') then
+						curr_state <= upper_half_hold;
+					end if;
+				when upper_half_hold =>
+					if(uart_ready = '0') then
+						uart_send_data <= '0';
+					end if;
+					
+					if(uart_ready = '1' and uart_ready_prev = '0') then
 						curr_state <= lower_half;
-						uart_triggered <= '0';
 					end if;
 				when lower_half =>
 					curr_index <= curr_index + 1;
 					data_out <= data_in(7 downto 0);
-					uart_send_data <= '0';
-					if(uart_ready = '1' and uart_triggered = '0') then
+					if(uart_ready = '1') then
 						uart_send_data <= '1';
-						uart_triggered <= '1';
-					elsif(uart_ready = '1' and uart_ready_prev = '0' and uart_triggered = '1') then
-						curr_state <= upper_half;
-						uart_triggered <= '0';
+						curr_state <= lower_half_hold;
 					end if;
+				when lower_half_hold =>
+					if(uart_ready = '0') then
+						uart_send_data <= '0';
+					end if;
+					
+					if(uart_ready = '1' and uart_ready_prev = '0') then
+						curr_state <= upper_half;
+					end if;
+					
 					if(end_buff = '1') then
 						end_buff <= '0';
 						curr_state <= waiting;
@@ -93,5 +102,5 @@ begin
 		end if;
 	end process;
 
-	index_data_in <= std_logic_vector(to_unsigned(curr_index,10));
+	index_data_in <= std_logic_vector(to_unsigned(curr_index,integer(ceil(log(real(num_samples))/log(real(2)))) + 1));
 end behavioral;

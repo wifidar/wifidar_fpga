@@ -26,6 +26,7 @@ end sample_buffer;
 
 architecture behavioral of sample_buffer is
 
+
 	type sample_buffer_mem_type is array (0 to (num_samples - 1)) of std_logic_vector(sample_length_bits - 1 downto 0);
 	signal sample_buffer_mem: sample_buffer_mem_type;
 
@@ -60,8 +61,9 @@ begin
 							curr_input_address <= 0;
 							curr_state <= emptying;
 							buffer_full_sig <= '1';
+						else
+							sample_buffer_mem(curr_input_address) <= sample_in;
 						end if;
-						sample_buffer_mem(curr_input_address) <= sample_in;
 					end if;
 				when emptying =>
 					initialized <= '0';
@@ -69,8 +71,10 @@ begin
 					if(sample_out_index = std_logic_vector(to_unsigned(num_samples,sample_out_index'length))) then
 						curr_state <= filling;
 						buffer_full_sig <= '0';
+						sample_out <= (others => '0');
+					else
+						sample_out <= sample_buffer_mem(to_integer(unsigned(sample_out_index)));
 					end if;
-					sample_out <= sample_buffer_mem(to_integer(unsigned(sample_out_index)));
 			end case;
 		end if;
 	end process;

@@ -5,7 +5,7 @@ use IEEE.math_real.all;
 
 entity wifidar_fpga is
 	generic(
-		num_samples: integer range 0 to 20000 := 500;
+		num_samples: integer range 0 to 20000 := 20;
 		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
@@ -113,7 +113,7 @@ architecture structural of wifidar_fpga is
 			
 			data_out: out std_logic_vector(7 downto 0);
 
-			index_data_in: out std_logic_vector(9 downto 0);
+			index_data_in: out std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 
 			sample_buffer_full: in std_logic;
 			uart_send_data: out std_logic;
