@@ -62,9 +62,9 @@ begin
 					end if;
 				when upper_half =>
 					if(curr_index = 0) then
-						data_out <= "10" & data_in(13 downto 8);
+						data_out <= "1" & data_in(13 downto 7);
 					else
-						data_out <= "00" & data_in(13 downto 8);
+						data_out <= "0" & data_in(13 downto 7);
 					end if;
 					if(uart_ready = '1') then
 						uart_send_data <= '1';
@@ -80,7 +80,7 @@ begin
 					end if;
 				when lower_half =>
 					curr_index <= curr_index + 1;
-					data_out <= data_in(7 downto 0);
+					data_out <= "0" & data_in(6 downto 0);
 					if(uart_ready = '1') then
 						uart_send_data <= '1';
 						curr_state <= lower_half_hold;
