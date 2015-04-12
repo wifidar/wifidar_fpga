@@ -5,7 +5,7 @@ use IEEE.math_real.all;
 
 entity wifidar_fpga is
 	generic(
-		num_samples: integer range 0 to 20000 := 400;
+		num_samples: integer range 0 to 20000 := 195;
 		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
@@ -22,9 +22,11 @@ entity wifidar_fpga is
 		
 		SPI_MOSI: out std_logic;
 		SPI_MISO: in std_logic;
-		DAC_CS: out std_logic;
 		SPI_SCK: out std_logic;
-		DAC_CLR: out std_logic;
+		
+		DAC_SCK: out std_logic;
+		DAC_CS: out std_logic;
+		DAC_MOSI: out std_logic;
 
 		current_mode_out: out std_logic_vector(1 downto 0);
 
@@ -136,14 +138,14 @@ architecture structural of wifidar_fpga is
 			----- chip selects ---
 			AMP_CS: out std_logic;  -- active low pre-amp chip select
 			--AD_CONV: out std_logic;  -- active high ADC chip select
-			DAC_CS: out std_logic;  -- active low DAC chip select
+			--DAC_CS: out std_logic;  -- active low DAC chip select
 
 			----- resets ---
-			DAC_CLR: out std_logic;  -- DAC clear signal (active low)
 			AMP_SHDN: out std_logic; -- ADC pre-amp shutdown signal (active high)
 
 			-- control signals
 			spi_controller_busy: in std_logic;
+			dac_ready: in std_logic;
 			
 			adc_send_data: out std_logic;
 			amp_send_data: out std_logic;
@@ -171,21 +173,6 @@ architecture structural of wifidar_fpga is
 		);
 	end component;
 	
-	component dac_spi
-		port(
-			--- this device ---
-			SPI_MOSI: out std_logic;  -- Master output, slave (DAC) input
-			SPI_SCK: out std_logic;  -- spi clock
-			--- control ---
-			ready_flag: out std_logic;  -- sending data flag
-			channel: in std_logic_vector(1 downto 0);
-			send_data: in std_logic;  -- send sine data over SPI
-			sine_data: in std_logic_vector(11 downto 0);
-			--reset_dac: in std_logic;
-			clk: in std_logic  -- master clock
-		);
-	end component;
-	
 	component preamp_config
 		port(
 			preamp_done: out std_logic;
@@ -196,6 +183,20 @@ architecture structural of wifidar_fpga is
 			spi_sck: out std_logic;
 			
 			clk: in std_logic
+		);
+	end component;
+	
+	component dac_serial
+		port(
+			SPI_SCK: out std_logic;  -- spi clock
+			DAC_CS: out std_logic;  -- chip select
+			SPI_MOSI_1: out std_logic;  -- Master output, slave (DAC) input
+			--SPI_MISO: in std_logic;  -- Master input, slave (DAC) output
+			--- control ---
+			data_in_1: in std_logic_vector(11 downto 0);
+			ready_flag: out std_logic;  -- sending data flag
+			send_data: in std_logic;  -- send sine data over SPI
+			clk: in std_logic  -- master clock
 		);
 	end component;
 	
@@ -218,10 +219,8 @@ architecture structural of wifidar_fpga is
 
 	signal spi_controller_busy: std_logic;
 	
-	signal spi_mosi_sig1: std_logic;
 	signal spi_mosi_sig2: std_logic;
 	
-	signal spi_sck_sig1: std_logic;
 	signal spi_sck_sig2: std_logic;
 	signal spi_sck_sig3: std_logic;
 	
@@ -244,20 +243,20 @@ begin
 
 	uart_minibuffer: uart_minibuf generic map (num_samples,sample_length_bits) port map (sample_buffer_out,uart_data,sample_out_index,sample_buffer_full,uart_send_data,uart_ready,rst,clk);
 
-	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,DAC_CS,DAC_CLR,AMP_SHDN,
-								spi_controller_busy,adc_send,amp_send,dac_send,
+	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,AMP_SHDN,
+								spi_controller_busy,dac_ready,adc_send,amp_send,dac_send,
 								req_adc,req_amp,rst,clk);
 
-	dac_controller: dac_spi port map (spi_mosi_sig1,spi_sck_sig1,dac_ready,"00",dac_send,ramp_data_sig,clk);
+	dac_controller: dac_serial port map (DAC_SCK,DAC_CS,DAC_MOSI,ramp_data_sig,dac_ready,dac_send,clk);
 	
 	adc_spi_control: adc_receiver port map (adc_send,adc_busy,spi_sck_sig2,SPI_MISO,AD_CONV,adc_sample_data,open,load_adc,clk);
 	
 	amp_controller: preamp_config port map (open,amp_send,amp_busy,spi_mosi_sig2,spi_sck_sig3,clk);
 	
-	SPI_MOSI <= spi_mosi_sig1 or spi_mosi_sig2;
-	SPI_SCK <= spi_sck_sig1 or spi_sck_sig2 or spi_sck_sig3;
+	SPI_MOSI <= spi_mosi_sig2;
+	SPI_SCK <= spi_sck_sig2 or spi_sck_sig3;
 	
-	spi_controller_busy <= adc_busy or (not dac_ready) or amp_busy;
+	spi_controller_busy <= adc_busy or amp_busy;
 	
 	debug <= sample_buffer_full;
 	debug2 <= new_waveform_sig;
