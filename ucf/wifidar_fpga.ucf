@@ -63,9 +63,8 @@ NET "SPI_SS_B" DRIVE = 6;
 
 
 NET "button_in[0]" LOC = V4;
-NET "button_in[1]" LOC = K17;
 NET "button_in[2]" LOC = D18;
-NET "button_in[3]" LOC = H13;
+NET "rst" LOC = H13;
 NET "rot_a" LOC = K18;
 NET "rot_b" LOC = G18;
 
@@ -80,33 +79,8 @@ NET "button_in[3]" PULLDOWN;
 NET "current_mode_out[0]" LOC = F12;
 NET "current_mode_out[1]" LOC = E12;
 
-##############################
-# PlanAhead Generated physical constraints 
+NET "SPI_MISO" LOC = "N10" | IOSTANDARD = LVCMOS33 ;
 
-#NET "lcd_data[0]" LOC = R15;
-#NET "lcd_data[0]" IOSTANDARD = LVCMOS33;
-#NET "lcd_data[0]" DRIVE = 4;
-#
-#NET "lcd_data[1]" LOC = R16;
-#NET "lcd_data[1]" IOSTANDARD = LVCMOS33;
-#NET "lcd_data[1]" DRIVE = 4;
-#
-#NET "lcd_data[2]" LOC = P17;
-#NET "lcd_data[2]" IOSTANDARD = LVCMOS33;
-#NET "lcd_data[2]" DRIVE = 4;
-#
-#NET "lcd_data[3]" LOC = M15;
-#NET "lcd_data[3]" IOSTANDARD = LVCMOS33;
-#NET "lcd_data[3]" DRIVE = 4;
-#
-#NET "lcd_e" LOC = M18;
-#NET "lcd_e" IOSTANDARD = LVCMOS33;
-#NET "lcd_e" DRIVE = 4;
-#
-#NET "lcd_rs" LOC = L18;
-#NET "lcd_rs" IOSTANDARD = LVCMOS33;
-#NET "lcd_rs" DRIVE = 4;
-#
-#NET "lcd_rw" LOC = L17;
-#NET "lcd_rw" IOSTANDARD = LVCMOS33;
-#NET "lcd_rw" DRIVE = 4;
+NET "uart_tx" LOC = E8;
+NET "debug" LOC = F8;
+NET "debug2" LOC = C7;
