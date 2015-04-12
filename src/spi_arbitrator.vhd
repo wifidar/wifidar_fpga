@@ -11,7 +11,7 @@ entity spi_arbitrator is
 
 		----- chip selects ---
 		AMP_CS: out std_logic;  -- active low pre-amp chip select
-		AD_CONV: out std_logic;  -- active high ADC chip select
+		--AD_CONV: out std_logic;  -- active high ADC chip select
 		DAC_CS: out std_logic;  -- active low DAC chip select
 
 		----- resets ---
@@ -20,19 +20,13 @@ entity spi_arbitrator is
 
 		-- control signals
 		spi_controller_busy: in std_logic;
-		spi_controller_send_data: out std_logic;
-		spi_data_width: out std_logic_vector(5 downto 0);
-		spi_data_in: out std_logic_vector(33 downto 0);
-		spi_data_out: in std_logic_vector(33 downto 0);
 		
-		to_adc_controller: out std_logic_vector(13 downto 0);
-		to_amp: in std_logic_vector(3 downto 0);
-		ramp_in: in std_logic_vector(11 downto 0);
+		adc_send_data: out std_logic;
+		amp_send_data: out std_logic;
+		dac_send_data: out std_logic;
 		
 		req_adc: in std_logic;
 		req_amp: in std_logic;
-
-		load_adc: out std_logic;
 
 		rst: in std_logic;
 		clk: in std_logic
@@ -46,47 +40,32 @@ architecture Behavioral of spi_arbitrator is
 	signal amp_requested: std_logic;
 	signal adc_requested: std_logic;
 	
-	signal adc_last: std_logic;
-	signal delay_one: std_logic;
-	
 begin
 
 	process(clk,rst)
 	begin
 		if(rst = '1') then
 			curr_state <= dac;
-			spi_controller_send_data <= '0';
-			spi_data_width <= (others => '0');
-			spi_data_in <= (others => '0');
-			to_adc_controller <= (others => '0');
-			load_adc <= '0';
+			adc_send_data <= '0';
+			dac_send_data <= '0';
+			amp_send_data <= '0';
 		elsif(rising_edge(clk)) then
-			load_adc <= '0';
 			if(spi_controller_busy = '1') then
-				spi_controller_send_data <= '0';
+				adc_send_data <= '0';
+				dac_send_data <= '0';
+				amp_send_data <= '0';
 				curr_state <= dac;
-				delay_one <= '0';
-				if(curr_state = adc) then
-					adc_last <= '1';
-				end if;
 				if(req_amp = '1') then
 					amp_requested <= '1';
 				elsif(req_adc = '1') then
 					adc_requested <= '1';
 				end if;
 			else
-				delay_one <= '1';
-				if(adc_last = '1' and delay_one = '1') then
-					delay_one <= '0';
-					adc_last <= '0';
-					to_adc_controller <= spi_data_out(13 downto 0);
-					load_adc <= '1';
-				end if;
 				case curr_state is
 					when dac =>
 						DAC_CS <= '0';
 						AMP_CS <= '1';
-						AD_CONV <= '0';
+						--AD_CONV <= '0';
 
 						if(amp_requested = '1') then
 							curr_state <= amp;
@@ -95,28 +74,18 @@ begin
 							curr_state <= adc;
 							adc_requested <= '0';
 						else
-							spi_data_in(11 downto 0) <= ramp_in;
-							spi_data_in(33 downto 10) <= (others => '0');
-							spi_data_width <= "011000";
-							spi_controller_send_data <= '1';
+							dac_send_data <= '1';
 						end if;
 					when adc =>
 						DAC_CS <= '1';
 						AMP_CS <= '1';
-						AD_CONV <= '1';
-
-						spi_data_in <= (others => '0');
-						spi_data_width <= "100010";
-						spi_controller_send_data <= '1';
+						--AD_CONV <= '1';
+						adc_send_data <= '1';
 					when amp =>
 						DAC_CS <= '1';
 						AMP_CS <= '0';
-						AD_CONV <= '0';
-
-						spi_data_in(3 downto 0) <= to_amp;
-						spi_data_in(33 downto 4) <= (others => '0');
-						spi_data_width <= "001000";
-						spi_controller_send_data <= '1';
+						--AD_CONV <= '0';
+						amp_send_data <= '1';
 					when others =>
 				end case;
 			end if;

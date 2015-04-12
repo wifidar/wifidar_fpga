@@ -5,7 +5,7 @@ use IEEE.math_real.all;
 
 entity wifidar_fpga is
 	generic(
-		num_samples: integer range 0 to 20000 := 20;
+		num_samples: integer range 0 to 20000 := 400;
 		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
@@ -29,6 +29,8 @@ entity wifidar_fpga is
 		current_mode_out: out std_logic_vector(1 downto 0);
 
 		uart_tx: out std_logic;
+		debug: out std_logic;
+		debug2: out std_logic;
 
 		rst: in std_logic;
 		clk: in std_logic
@@ -133,7 +135,7 @@ architecture structural of wifidar_fpga is
 
 			----- chip selects ---
 			AMP_CS: out std_logic;  -- active low pre-amp chip select
-			AD_CONV: out std_logic;  -- active high ADC chip select
+			--AD_CONV: out std_logic;  -- active high ADC chip select
 			DAC_CS: out std_logic;  -- active low DAC chip select
 
 			----- resets ---
@@ -142,40 +144,57 @@ architecture structural of wifidar_fpga is
 
 			-- control signals
 			spi_controller_busy: in std_logic;
-			spi_controller_send_data: out std_logic;
-			spi_data_width: out std_logic_vector(5 downto 0);
-			spi_data_in: out std_logic_vector(33 downto 0);
-			spi_data_out: in std_logic_vector(33 downto 0);
 			
-			to_adc_controller: out std_logic_vector(13 downto 0);
-			to_amp: in std_logic_vector(3 downto 0);
-			ramp_in: in std_logic_vector(11 downto 0);
+			adc_send_data: out std_logic;
+			amp_send_data: out std_logic;
+			dac_send_data: out std_logic;
 			
 			req_adc: in std_logic;
 			req_amp: in std_logic;
-
-			load_adc: out std_logic;
 
 			rst: in std_logic;
 			clk: in std_logic
 		);
 	end component;
 
-	component spi_controller
+	component adc_receiver
 		port(
-			--- SPI signals ---
-			SPI_SCK: out std_logic;  -- spi clock
-			SPI_MOSI: out std_logic;  -- Master output, slave input
-			SPI_MISO: in std_logic;  -- Master input, slave output
-
-			--- control ---
+			send_data: in std_logic;
 			busy: out std_logic;
-			send_data: in std_logic;  -- send data over SPI
-			spi_data_width: in std_logic_vector(5 downto 0);
-			spi_clk_div: in std_logic_vector(1 downto 0); -- divider required for spi clock
-			spi_data_in: in std_logic_vector(33 downto 0);
-			spi_data_out: out std_logic_vector(33 downto 0);
-			rst: in std_logic;
+			spi_sck: out std_logic;
+			spi_miso: in std_logic;
+			ad_conv: out std_logic;
+			outputA: out std_logic_vector (13 downto 0);
+			outputB: out std_logic_vector (13 downto 0);
+			new_reading: out std_logic;
+			clk: in std_logic
+		);
+	end component;
+	
+	component dac_spi
+		port(
+			--- this device ---
+			SPI_MOSI: out std_logic;  -- Master output, slave (DAC) input
+			SPI_SCK: out std_logic;  -- spi clock
+			--- control ---
+			ready_flag: out std_logic;  -- sending data flag
+			channel: in std_logic_vector(1 downto 0);
+			send_data: in std_logic;  -- send sine data over SPI
+			sine_data: in std_logic_vector(11 downto 0);
+			--reset_dac: in std_logic;
+			clk: in std_logic  -- master clock
+		);
+	end component;
+	
+	component preamp_config
+		port(
+			preamp_done: out std_logic;
+			send_data: in std_logic;
+			busy: out std_logic;
+			
+			spi_mosi: out std_logic;
+			spi_sck: out std_logic;
+			
 			clk: in std_logic
 		);
 	end component;
@@ -193,15 +212,27 @@ architecture structural of wifidar_fpga is
 	signal sample_out_index: std_logic_vector(integer(ceil(log(real(num_samples))/log(real(2)))) downto 0);
 	signal sample_buffer_full: std_logic;
 
-	signal spi_to_amp: std_logic_vector(3 downto 0);
+	--signal spi_to_amp: std_logic_vector(3 downto 0);
 	signal req_adc: std_logic;
 	signal req_amp: std_logic;
 
 	signal spi_controller_busy: std_logic;
-	signal spi_controller_send_data: std_logic;
-	signal spi_data_width: std_logic_vector(5 downto 0);
-	signal spi_data_in: std_logic_vector(33 downto 0);
-	signal spi_data_out: std_logic_vector(33 downto 0);
+	
+	signal spi_mosi_sig1: std_logic;
+	signal spi_mosi_sig2: std_logic;
+	
+	signal spi_sck_sig1: std_logic;
+	signal spi_sck_sig2: std_logic;
+	signal spi_sck_sig3: std_logic;
+	
+	signal dac_ready: std_logic;
+	signal dac_send: std_logic;
+	
+	signal adc_busy: std_logic;
+	signal adc_send: std_logic;
+	
+	signal amp_send: std_logic;
+	signal amp_busy: std_logic;
 begin
 	ramp_generator: ramp_block port map (rot_a,rot_b,button_in,new_waveform_sig,ramp_data_sig,current_mode_out,clk);
 
@@ -209,14 +240,26 @@ begin
 
 	sample_buefferer: sample_buffer generic map (num_samples,sample_length_bits) port map (adc_sample_data,sample_buffer_out,load_adc,new_waveform_sig,sample_out_index,sample_buffer_full,rst,clk);
 
-	adc_controllerer: adc_controller port map (spi_to_amp,req_adc,req_amp,rst,clk);
+	adc_controllerer: adc_controller port map (open,req_adc,req_amp,rst,clk);
 
 	uart_minibuffer: uart_minibuf generic map (num_samples,sample_length_bits) port map (sample_buffer_out,uart_data,sample_out_index,sample_buffer_full,uart_send_data,uart_ready,rst,clk);
 
-	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,AD_CONV,DAC_CS,DAC_CLR,AMP_SHDN,
-								spi_controller_busy,spi_controller_send_data,spi_data_width,spi_data_in,spi_data_out,
-								adc_sample_data,spi_to_amp,ramp_data_sig,req_adc,req_amp,load_adc,rst,clk);
+	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,DAC_CS,DAC_CLR,AMP_SHDN,
+								spi_controller_busy,adc_send,amp_send,dac_send,
+								req_adc,req_amp,rst,clk);
 
-	spi_controllerer: spi_controller port map (SPI_SCK,SPI_MOSI,SPI_MISO,spi_controller_busy,spi_controller_send_data,
-								spi_data_width,"10",spi_data_in,spi_data_out,rst,clk);
+	dac_controller: dac_spi port map (spi_mosi_sig1,spi_sck_sig1,dac_ready,"00",dac_send,ramp_data_sig,clk);
+	
+	adc_spi_control: adc_receiver port map (adc_send,adc_busy,spi_sck_sig2,SPI_MISO,AD_CONV,adc_sample_data,open,load_adc,clk);
+	
+	amp_controller: preamp_config port map (open,amp_send,amp_busy,spi_mosi_sig2,spi_sck_sig3,clk);
+	
+	SPI_MOSI <= spi_mosi_sig1 or spi_mosi_sig2;
+	SPI_SCK <= spi_sck_sig1 or spi_sck_sig2 or spi_sck_sig3;
+	
+	spi_controller_busy <= adc_busy or (not dac_ready) or amp_busy;
+	
+	debug <= sample_buffer_full;
+	debug2 <= new_waveform_sig;
+	
 end structural;

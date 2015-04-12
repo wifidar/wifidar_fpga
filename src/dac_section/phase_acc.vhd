@@ -25,7 +25,7 @@ begin
 	begin
 		if(rising_edge(clk)) then
 			big_ol_counter <= big_ol_counter + unsigned(freq_mult);
-			if(big_ol_counter = to_unsigned(0,21)) then
+			if(big_ol_counter < "10000") then
 				new_signal <= '1';
 			else
 				new_signal <= '0';

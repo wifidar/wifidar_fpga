@@ -20,9 +20,9 @@ end adc_controller;
 
 architecture Behavioral of adc_controller is
 	type adc_state is (reset_amp,normal_op,update_adc); -- TODO: add serial update and ability to update amplifier
-	signal curr_state: adc_state;
+	signal curr_state: adc_state := reset_amp;
 
-	signal count_before_adc_req: integer range 0 to 50000;
+	signal count_before_adc_req: integer range 0 to 50000 := 0;
 	
 begin
 	process(clk,rst)
@@ -40,7 +40,11 @@ begin
 				when reset_amp =>
 					req_amp <= '1';
 					spi_to_amp <= "0001";
-					curr_state <= normal_op;
+					count_before_adc_req <= count_before_adc_req + 1;
+					if(count_before_adc_req = 24) then
+						curr_state <= normal_op;
+						count_before_adc_req <= 750;
+					end if;
 				when normal_op =>
 					count_before_adc_req <= count_before_adc_req + 1;
 					if(count_before_adc_req = sample_div - 1) then

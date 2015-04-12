@@ -33,7 +33,7 @@ architecture behavioral of uart is
 
 	signal uart_tx_sig: std_logic;
 
-	signal current_bit: integer range 0 to 8;
+	signal current_bit: integer range 0 to 9;
 
 begin
 	slower_clock: process(clk,rst)
@@ -69,14 +69,14 @@ begin
 				when sending =>
 					ready <= '0';
 					current_bit <= current_bit + 1;
-					if(current_bit = 0) then
+					if(current_bit = 9) then
+						current_bit <= 0;
+						uart_tx_sig <= '1';
+						curr_state <= waiting;
+					elsif(current_bit = 0) then
 						uart_tx_sig <= '0';
 					else
 						uart_tx_sig <= data_in(current_bit - 1);
-					end if;
-					if(current_bit = 7) then
-						current_bit <= 0;
-						curr_state <= waiting;
 					end if;
 			end case;
 		end if;
