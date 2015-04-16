@@ -88,9 +88,9 @@ begin
 								when 6 =>
 									spi_mosi <= '0';
 								when 7 => 
-									spi_mosi <= '0';
-								when 8 =>
 									spi_mosi <= '1';
+								when 8 =>
+									spi_mosi <= '0';
 								when others =>
 									spi_mosi <= '0';
 									--amp_cs <= '1';

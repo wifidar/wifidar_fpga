@@ -6,7 +6,7 @@ use IEEE.math_real.all;
 entity uart is
 	generic(
 		clk_freq: integer := 50000000;
-		baud_rate: integer := 38400
+		baud_rate: integer := 115200
 	);
 	port(
 		uart_tx: out std_logic;
@@ -43,7 +43,7 @@ begin
 			slow_clock <= '0';
 		elsif(rising_edge(clk)) then
 			clock_divide <= clock_divide + 1;
-			if(clock_divide = integer(ceil(real(clk_freq/(2*baud_rate))))) then  -- 651->38400 baud
+			if(clock_divide = 215) then  -- 651->38400 baud
 				clock_divide <= 0;
 				slow_clock <= not slow_clock;
 			end if;

@@ -42,7 +42,7 @@ begin
 						elsif(adjust(1) = '1') then
 							freq_array(I) <= std_logic_vector(unsigned(freq_array(I)) - 1);
 						end if;
-					elsif(current_mode = "01") then -- phase adjust
+					elsif(current_mode = "01") then -- offset adjust
 						if(adjust(0) = '1') then
 							offset_array(I) <= std_logic_vector(unsigned(offset_array(I)) + 10);
 						elsif(adjust(1) = '1') then

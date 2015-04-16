@@ -5,7 +5,7 @@ use IEEE.math_real.all;
 
 entity sample_buffer is
 	generic(
-		num_samples: integer range 0 to 20000 := 20;
+		num_samples: integer range 0 to 20000 := 400;
 		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
@@ -36,6 +36,8 @@ architecture behavioral of sample_buffer is
 	signal curr_input_address: integer range 0 to num_samples := 0;
 	signal buffer_full_sig: std_logic := '0';
 	signal initialized: std_logic := '0';
+	
+	signal initial_sample_prev: std_logic;
 
 begin
 
@@ -44,6 +46,7 @@ begin
 		if(rst = '1') then
 			curr_state <= reset;
 		elsif(rising_edge(clk)) then
+			initial_sample_prev <= initial_sample;
 			buffer_full_sig <= '0';
 			case curr_state is
 				when reset =>
@@ -51,7 +54,7 @@ begin
 					buffer_full_sig <= '0';
 					curr_input_address <= 0;
 				when filling =>
-					if(initial_sample = '1') then
+					if(initial_sample_prev = '1' and initial_sample = '0') then
 						initialized <= '1';
 						curr_input_address <= 0;
 					end if;
@@ -62,7 +65,7 @@ begin
 							curr_state <= emptying;
 							buffer_full_sig <= '1';
 						else
-							sample_buffer_mem(curr_input_address) <= sample_in;
+							sample_buffer_mem(curr_input_address) <= std_logic_vector(signed(sample_in) + (2**13));
 						end if;
 					end if;
 				when emptying =>

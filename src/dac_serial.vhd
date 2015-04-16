@@ -18,10 +18,10 @@ end dac_serial;
 
 architecture Behavioral of dac_serial is
 
-	signal current_bit: integer range 0 to 15 := 0;
+	signal current_bit: integer range 0 to 16 := 0;
 	signal ready_flag_sig: std_logic := '0';
-	signal spi_clk_delay: std_logic;
-	signal dac_cs_delay: std_logic;
+	signal spi_clk_delay: std_logic := '0';
+	signal dac_cs_delay: std_logic := '0';
 	
 begin
 	process(clk)
@@ -30,6 +30,7 @@ begin
 			if(send_data = '1') and (ready_flag_sig = '1') then
 				ready_flag_sig <= '0';
 				dac_cs_delay <= '0';
+				DAC_CS <= dac_cs_delay;
 			elsif ready_flag_sig = '0' then
 				if(spi_clk_delay = '1') then
 					spi_clk_delay <= '0';
@@ -38,34 +39,38 @@ begin
 					
 					current_bit <= current_bit + 1;
 					case current_bit is
-						-- command
+						-- don't cares
+						when 1 => SPI_MOSI_1 <= '0';
 						when 2 => SPI_MOSI_1 <= '0';
+						-- command
 						when 3 => SPI_MOSI_1 <= '0';
+						when 4 => SPI_MOSI_1 <= '0';
 						-- data
-						when 4 => SPI_MOSI_1 <= data_in_1(11);
-						when 5 => SPI_MOSI_1 <= data_in_1(10);
-						when 6 => SPI_MOSI_1 <= data_in_1(9);
-						when 7 => SPI_MOSI_1 <= data_in_1(8);
-						when 8 => SPI_MOSI_1 <= data_in_1(7);
-						when 9 => SPI_MOSI_1 <= data_in_1(6);
-						when 10 => SPI_MOSI_1 <= data_in_1(5);
-						when 11 => SPI_MOSI_1 <= data_in_1(4);
-						when 12 => SPI_MOSI_1 <= data_in_1(3);
-						when 13 => SPI_MOSI_1 <= data_in_1(2);
-						when 14 => SPI_MOSI_1 <= data_in_1(1);
-						when 15 => SPI_MOSI_1 <= data_in_1(0);
+						when 5 => SPI_MOSI_1 <= data_in_1(11);
+						when 6 => SPI_MOSI_1 <= data_in_1(10);
+						when 7 => SPI_MOSI_1 <= data_in_1(9);
+						when 8 => SPI_MOSI_1 <= data_in_1(8);
+						when 9 => SPI_MOSI_1 <= data_in_1(7);
+						when 10 => SPI_MOSI_1 <= data_in_1(6);
+						when 11 => SPI_MOSI_1 <= data_in_1(5);
+						when 12 => SPI_MOSI_1 <= data_in_1(4);
+						when 13 => SPI_MOSI_1 <= data_in_1(3);
+						when 14 => SPI_MOSI_1 <= data_in_1(2);
+						when 15 => SPI_MOSI_1 <= data_in_1(1);
+						when 16 => SPI_MOSI_1 <= data_in_1(0);
+									  DAC_CS <= '1';
 						           ready_flag_sig <= '1';
 						-- other
 						when others  => SPI_MOSI_1 <= '0'; -- used for don't cares
 					end case;
 				end if;
 			else
-				dac_cs_delay <= '1';
+				DAC_CS <= '1';
 				current_bit <= 0;
-				spi_clk_delay <= dac_cs_delay;
+				spi_clk_delay <= '1';
 			end if;
-			DAC_CS <= dac_cs_delay;
-			SPI_SCK <= spi_clk_delay;
+			--DAC_CS <= dac_cs_delay;
+			SPI_SCK <= not spi_clk_delay;
 			ready_flag <= ready_flag_sig;
 		end if;	
 	end process;

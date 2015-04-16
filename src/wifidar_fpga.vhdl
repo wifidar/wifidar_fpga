@@ -5,13 +5,13 @@ use IEEE.math_real.all;
 
 entity wifidar_fpga is
 	generic(
-		num_samples: integer range 0 to 20000 := 195;
+		num_samples: integer range 0 to 20000 := 395;
 		sample_length_bits: integer range 0 to 32 := 14
 	);
 	port(
-		rot_a: in std_logic;
-		rot_b: in std_logic;
-		button_in: in std_logic_vector(3 downto 0);
+--		rot_a: in std_logic;
+--		rot_b: in std_logic;
+--		button_in: in std_logic_vector(3 downto 0);
 		
 		SPI_SS_B: out std_logic;
 		AMP_CS: out std_logic;
@@ -24,11 +24,13 @@ entity wifidar_fpga is
 		SPI_MISO: in std_logic;
 		SPI_SCK: out std_logic;
 		
-		DAC_SCK: out std_logic;
-		DAC_CS: out std_logic;
-		DAC_MOSI: out std_logic;
+--		DAC_SCK: out std_logic;
+--		DAC_CS: out std_logic;
+--		DAC_MOSI: out std_logic;
 
-		current_mode_out: out std_logic_vector(1 downto 0);
+--		current_mode_out: out std_logic_vector(1 downto 0);
+		
+		initial_sample: in std_logic;
 
 		uart_tx: out std_logic;
 		debug: out std_logic;
@@ -41,20 +43,6 @@ entity wifidar_fpga is
 end wifidar_fpga;
 
 architecture structural of wifidar_fpga is
-	component ramp_block
-		port(
-			rot_a: in std_logic;
-			rot_b: in std_logic;
-			button_in: in std_logic_vector(3 downto 0);
-			
-			new_waveform: out std_logic;
-			ramp_data: out std_logic_vector(11 downto 0);
-
-			current_mode_out: out std_logic_vector(1 downto 0);
-
-			clk: in std_logic
-		);
-	end component;
 
 	component uart
 		generic(
@@ -199,9 +187,6 @@ architecture structural of wifidar_fpga is
 			clk: in std_logic  -- master clock
 		);
 	end component;
-	
-	signal new_waveform_sig: std_logic;
-	signal ramp_data_sig: std_logic_vector(11 downto 0);
 
 	signal uart_data: std_logic_vector(7 downto 0);
 	signal uart_send_data: std_logic;
@@ -224,31 +209,27 @@ architecture structural of wifidar_fpga is
 	signal spi_sck_sig2: std_logic;
 	signal spi_sck_sig3: std_logic;
 	
-	signal dac_ready: std_logic;
-	signal dac_send: std_logic;
-	
 	signal adc_busy: std_logic;
 	signal adc_send: std_logic;
 	
 	signal amp_send: std_logic;
 	signal amp_busy: std_logic;
 begin
-	ramp_generator: ramp_block port map (rot_a,rot_b,button_in,new_waveform_sig,ramp_data_sig,current_mode_out,clk);
 
 	uarter: uart port map (uart_tx,uart_data,uart_ready,uart_send_data,rst,clk);
 
-	sample_buefferer: sample_buffer generic map (num_samples,sample_length_bits) port map (adc_sample_data,sample_buffer_out,load_adc,new_waveform_sig,sample_out_index,sample_buffer_full,rst,clk);
+	sample_buefferer: sample_buffer generic map (num_samples,sample_length_bits) port map (adc_sample_data,sample_buffer_out,load_adc,initial_sample,sample_out_index,sample_buffer_full,rst,clk);
 
 	adc_controllerer: adc_controller port map (open,req_adc,req_amp,rst,clk);
 
 	uart_minibuffer: uart_minibuf generic map (num_samples,sample_length_bits) port map (sample_buffer_out,uart_data,sample_out_index,sample_buffer_full,uart_send_data,uart_ready,rst,clk);
 
 	spi_arbitratorer: spi_arbitrator port map (SPI_SS_B,SF_CE0,FPGA_INIT_B,AMP_CS,AMP_SHDN,
-								spi_controller_busy,dac_ready,adc_send,amp_send,dac_send,
+								spi_controller_busy,'0',adc_send,amp_send,open,
 								req_adc,req_amp,rst,clk);
 
-	dac_controller: dac_serial port map (DAC_SCK,DAC_CS,DAC_MOSI,ramp_data_sig,dac_ready,dac_send,clk);
-	
+	--dac_controller: dac_serial port map (DAC_SCK,DAC_CS,DAC_MOSI,ramp_data_sig,dac_ready,dac_send,clk);
+
 	adc_spi_control: adc_receiver port map (adc_send,adc_busy,spi_sck_sig2,SPI_MISO,AD_CONV,adc_sample_data,open,load_adc,clk);
 	
 	amp_controller: preamp_config port map (open,amp_send,amp_busy,spi_mosi_sig2,spi_sck_sig3,clk);
@@ -259,6 +240,6 @@ begin
 	spi_controller_busy <= adc_busy or amp_busy;
 	
 	debug <= sample_buffer_full;
-	debug2 <= new_waveform_sig;
+	debug2 <= initial_sample;
 	
 end structural;
